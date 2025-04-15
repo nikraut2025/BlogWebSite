@@ -1,0 +1,116 @@
+@page "/blog/{Slug}"
+@using BlogWebSite.Models
+@using BlogWebSite.Services
+@using Markdig
+@inject BlogService BlogService
+@inject NavigationManager NavigationManager
+
+<PageTitle>@(blog?.Title ?? "Blog Post") - BlogWebSite</PageTitle>
+
+@if (blog == null)
+{
+    <div class="container mt-5">
+        <div class="alert alert-warning" role="alert">
+            Blog post not found.
+        </div>
+    </div>
+}
+else
+{
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                @if (!string.IsNullOrEmpty(blog.FeaturedImage))
+                {
+                    <img src="@blog.FeaturedImage" class="img-fluid rounded mb-4" alt="@blog.Title">
+                }
+
+                <h1 class="display-4 mb-3">@blog.Title</h1>
+
+                <div class="d-flex align-items-center text-muted mb-4">
+                    <div class="me-3">
+                        <i class="bi bi-calendar"></i>
+                        <span class="ms-1">@blog.PublishedDate.ToString("MMMM dd, yyyy")</span>
+                    </div>
+                    @if (!string.IsNullOrEmpty(blog.AuthorName))
+                    {
+                        <div class="me-3">
+                            <i class="bi bi-person"></i>
+                            <span class="ms-1">@blog.AuthorName</span>
+                        </div>
+                    }
+                    <div>
+                        <i class="bi bi-eye"></i>
+                        <span class="ms-1">@blog.ViewCount views</span>
+                    </div>
+                </div>
+
+                @if (blog.Tags.Any())
+                {
+                    <div class="mb-4">
+                        @foreach (var tag in blog.Tags)
+                        {
+                            <span class="badge bg-secondary me-1">@tag</span>
+                        }
+                    </div>
+                }
+
+                <div class="blog-content">
+                    @((MarkupString)Markdown.ToHtml(blog.Content))
+                </div>
+
+                <hr class="my-5">
+
+                <div class="d-flex justify-content-between align-items-center">
+                    <a href="/blog" class="btn btn-outline-primary">
+                        <i class="bi bi-arrow-left"></i> Back to Blog
+                    </a>
+                    <div class="share-buttons">
+                        <button class="btn btn-sm btn-outline-secondary me-2" @onclick="ShareOnTwitter">
+                            <i class="bi bi-twitter"></i> Share
+                        </button>
+                        <button class="btn btn-sm btn-outline-secondary" @onclick="ShareOnLinkedIn">
+                            <i class="bi bi-linkedin"></i> Share
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private Blog? blog;
+
+    [Parameter]
+    public string? Slug { get; set; }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (!string.IsNullOrEmpty(Slug))
+        {
+            blog = await BlogService.GetBlogBySlugAsync(Slug);
+        }
+    }
+
+    private void ShareOnTwitter()
+    {
+        if (blog != null)
+        {
+            var url = NavigationManager.Uri;
+            var text = Uri.EscapeDataString(blog.Title);
+            var twitterUrl = $"https://twitter.com/intent/tweet?text={text}&url={Uri.EscapeDataString(url)}";
+            NavigationManager.NavigateTo(twitterUrl, true);
+        }
+    }
+
+    private void ShareOnLinkedIn()
+    {
+        if (blog != null)
+        {
+            var url = NavigationManager.Uri;
+            var linkedInUrl = $"https://www.linkedin.com/sharing/share-offsite/?url={Uri.EscapeDataString(url)}";
+            NavigationManager.NavigateTo(linkedInUrl, true);
+        }
+    }
+} 

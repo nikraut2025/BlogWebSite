@@ -1,0 +1,122 @@
+@page "/register"
+@using BlogWebSite.Models
+@using Microsoft.AspNetCore.Identity
+@using System.Security.Claims
+@inject UserManager<IdentityUser> UserManager
+@inject SignInManager<IdentityUser> SignInManager
+@inject NavigationManager NavigationManager
+
+<PageTitle>Register - BlogWebSite</PageTitle>
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card mt-5">
+                <div class="card-header">
+                    <h3 class="text-center">Register</h3>
+                </div>
+                <div class="card-body">
+                    <EditForm Model="@registerModel" OnValidSubmit="HandleRegistration" FormName="registerForm">
+                        @* <DataAnnotationsValidator /> *@
+
+                        <div class="mb-3">
+                            <label for="firstName" class="form-label">First Name</label>
+                            <InputText id="firstName" class="form-control" @bind-Value="registerModel.FirstName" />
+                            <ValidationMessage For="@(() => registerModel.FirstName)" class="text-danger" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="lastName" class="form-label">Last Name</label>
+                            <InputText id="lastName" class="form-control" @bind-Value="registerModel.LastName" />
+                            <ValidationMessage For="@(() => registerModel.LastName)" class="text-danger" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email</label>
+                            <InputText id="email" class="form-control" @bind-Value="registerModel.Email" />
+                            <ValidationMessage For="@(() => registerModel.Email)" class="text-danger" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="password" class="form-label">Password</label>
+                            <InputText type="password" id="password" class="form-control" @bind-Value="registerModel.Password" />
+                            <ValidationMessage For="@(() => registerModel.Password)" class="text-danger" />
+                            <small class="form-text text-muted">
+                                Password must be at least 6 characters long and contain uppercase, lowercase, numbers, and special characters.
+                            </small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="confirmPassword" class="form-label">Confirm Password</label>
+                            <InputText type="password" id="confirmPassword" class="form-control" @bind-Value="registerModel.ConfirmPassword" />
+                            <ValidationMessage For="@(() => registerModel.ConfirmPassword)" class="text-danger" />
+                        </div>
+
+                        @if (!string.IsNullOrEmpty(errorMessage))
+                        {
+                            <div class="alert alert-danger" role="alert">
+                                @errorMessage
+                            </div>
+                        }
+
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary">Register</button>
+                        </div>
+                    </EditForm>
+
+                    <div class="mt-3 text-center">
+                        <p>Already have an account? <a href="login">Login here</a></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private RegisterModel registerModel = new();
+    private string? errorMessage;
+
+    protected override void OnInitialized()
+    {
+        errorMessage = null;
+    }
+
+    private async Task HandleRegistration()
+    {
+        try
+        {
+            errorMessage = null;
+            var user = new IdentityUser
+            {
+                UserName = registerModel.Email,
+                Email = registerModel.Email
+            };
+
+            var result = await UserManager.CreateAsync(user, registerModel.Password);
+
+            if (result.Succeeded)
+            {
+                var claims = new List<Claim>
+                {
+                    new Claim(ClaimTypes.GivenName, registerModel.FirstName),
+                    new Claim(ClaimTypes.Surname, registerModel.LastName)
+                };
+
+                await UserManager.AddClaimsAsync(user, claims);
+                await SignInManager.SignInAsync(user, isPersistent: false);
+                NavigationManager.NavigateTo("/");
+            }
+            else
+            {
+                errorMessage = string.Join(" ", result.Errors.Select(e => e.Description));
+                StateHasChanged();
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = "An error occurred during registration. Please try again.";
+            StateHasChanged();
+        }
+    }
+} 

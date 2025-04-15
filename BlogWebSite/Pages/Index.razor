@@ -1,0 +1,51 @@
+﻿@page "/"
+
+<PageTitle>Home - BlogWebSite</PageTitle>
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="jumbotron">
+                <h1 class="display-4">Welcome to BlogWebSite</h1>
+                <p class="lead">Share your thoughts and experiences with the world.</p>
+                <hr class="my-4">
+                <p>Get started by exploring our blogs or create your own.</p>
+                <AuthorizeView>
+                    <Authorized>
+                        <a class="btn btn-primary btn-lg" href="/blogs/create" role="button">Create Blog</a>
+                    </Authorized>
+                    <NotAuthorized>
+                        <a class="btn btn-primary btn-lg" href="/register" role="button">Get Started</a>
+                    </NotAuthorized>
+                </AuthorizeView>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Share Your Stories</h5>
+                    <p class="card-text">Create and share your unique perspectives with our growing community.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Connect with Others</h5>
+                    <p class="card-text">Engage with other writers and readers through comments and discussions.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Discover Content</h5>
+                    <p class="card-text">Explore a wide range of topics and perspectives from our community.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

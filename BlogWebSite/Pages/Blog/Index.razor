@@ -1,0 +1,106 @@
+@page "/blog"
+@using BlogWebSite.Models
+@using BlogWebSite.Services
+@inject BlogService BlogService
+
+<PageTitle>Blog - BlogWebSite</PageTitle>
+
+<div class="container">
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="display-4">Our Blog</h1>
+            <p class="lead">Discover the latest insights, tips, and stories from our community.</p>
+        </div>
+    </div>
+
+    @if (blogs == null)
+    {
+        <div class="d-flex justify-content-center">
+            <div class="spinner-border" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+            @foreach (var blog in blogs)
+            {
+                <div class="col">
+                    <div class="card h-100 shadow-sm">
+                        @if (!string.IsNullOrEmpty(blog.FeaturedImage))
+                        {
+                            <img src="@blog.FeaturedImage" class="card-img-top" alt="@blog.Title">
+                        }
+                        <div class="card-body">
+                            <h5 class="card-title">@blog.Title</h5>
+                            <p class="card-text">@blog.Summary</p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div class="btn-group">
+                                    <a href="/blog/@blog.Slug" class="btn btn-sm btn-outline-primary">Read More</a>
+                                </div>
+                                <small class="text-muted">@blog.PublishedDate.ToString("MMM dd, yyyy")</small>
+                            </div>
+                        </div>
+                        @if (blog.Tags.Any())
+                        {
+                            <div class="card-footer bg-transparent">
+                                @foreach (var tag in blog.Tags)
+                                {
+                                    <span class="badge bg-secondary me-1">@tag</span>
+                                }
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+
+        @if (currentPage > 1 || blogs.Count == pageSize)
+        {
+            <div class="row mt-4">
+                <div class="col d-flex justify-content-center">
+                    <nav aria-label="Page navigation">
+                        <ul class="pagination">
+                            @if (currentPage > 1)
+                            {
+                                <li class="page-item">
+                                    <a class="page-link" href="/blog?page=@(currentPage - 1)" aria-label="Previous">
+                                        <span aria-hidden="true">&laquo;</span>
+                                    </a>
+                                </li>
+                            }
+                            <li class="page-item active"><span class="page-link">@currentPage</span></li>
+                            @if (blogs.Count == pageSize)
+                            {
+                                <li class="page-item">
+                                    <a class="page-link" href="/blog?page=@(currentPage + 1)" aria-label="Next">
+                                        <span aria-hidden="true">&raquo;</span>
+                                    </a>
+                                </li>
+                            }
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+        }
+    }
+</div>
+
+@code {
+    private List<Blog>? blogs;
+    private int currentPage = 1;
+    private const int pageSize = 9;
+
+    [Parameter]
+    [SupplyParameterFromQuery]
+    public int? Page { get; set; }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        currentPage = Page ?? 1;
+        if (currentPage < 1) currentPage = 1;
+        
+        blogs = await BlogService.GetBlogsAsync(currentPage, pageSize);
+    }
+} 
